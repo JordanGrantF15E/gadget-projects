@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=windows-1252" />
+    <title>Gadget's TFR XML Test</title>
+	
+
+    <script type="text/javascript">
+		RunTest=function(){
+
+  xmlhttp=new XMLHttpRequest();
+xmlhttp.open("GET","testphp.php",false);
+xmlhttp.overrideMimeType('text/xml');
+
+xmlhttp.send();
+//document.write(xmlhttp.responseText);
+xmlDoc=xmlhttp.responseXML;
+document.write(xmlDoc.getElementsByTagName("BOUND")[0].childNodes[0].nodeValue);	
+		}
+	</script>
+</head>
+<body onload="RunTest();">
+    
+    <div>
+
+    </div>
+    
+
+    </body>
+</html>

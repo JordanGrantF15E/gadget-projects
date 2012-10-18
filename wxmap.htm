@@ -1,0 +1,226 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=windows-1252" />
+    <!-- All HTML and Javascript on this site contains code copyrighted by Wayne Flynn. No duplication, copying, modification, etc. is permitted.
+    Questions can be addressed to map@waynesweatherwatcher.com. © 2012 Wayne Flynn - All rights reserved. -->
+    <title>Gadget's NTTR Weather Map</title>
+    <meta name="viewport" content="initial-scale=1.2, user-scalable=no" />
+    <meta name="description" content="Gadget's NTTR Wx/Airspace page puts weather data AND NTTR airspace outlines all on a Google Map. " />
+    <link rel="shortcut icon" href="images/favicon.ico" />
+    <style type="text/css">
+	a:link{color:#00f}
+	a:visited{color:#00f}
+	a:active{color:#00f}
+	a:hover{text-decoration:none;}
+
+	html { height: 100%;}
+	body { height: 100%; margin: 0px; padding: 0px; width:100%;font-family:arial}
+	select{font-size:12px}
+	#changelog li{padding-top:5px;}
+	#changelog{position:absolute;top:0px;left:0px;width:600px;height:225px;background-color:#ccc;border:1px solid #000;}
+	#changeentries{background-color:#fff;color:#000;border:double 3px #f00;overflow:auto;height:200px;}
+	#mapwrap{margin-left:153px;height:100%;}
+	#leftnav{position:absolute;left:0px;top:0px;height:100%;width:150px;background-color:#ccc;border-right:3px double #000}
+	#preferencemenu input{font-size:9px;width:40px;}
+	#siteoptions{padding-left:3px;}
+	.boldtext{font-weight:bold}
+	.borderLRB{border-left:1px solid #000;border-bottom:1px solid #000;border-right:1px solid #000;}
+	.bottommessage{position:fixed;z-index:9999;left:200px;background-color:#FFF;color:#000;padding:2px;border:1px solid #F00;text-align:center;top:10px;}
+	.centermessage{position:fixed;z-index:9999;left:200px;background-color:#FFF;color:#000;padding:2px;border:1px solid #F00;text-align:center;top:200px;}
+	.configtitle{padding-left:0px;padding-bottom:1px;margin-top:5px;margin-right:25px;color:#000;}
+	.fauxlinkred{color:#00F;text-decoration:underline;}
+	.fauxlinkred:visited{color:#00F;text-decoration:underline;}
+	.fauxlinkred:active{color:#00F;text-decoration:underline;}
+	.fauxlinkred:hover{color:#F00;text-decoration:none}
+	.fauxlink{color:#000;text-decoration:underline;}
+	.fauxlink:visited{color:#000;text-decoration:underline;}
+	.fauxlink:active{color:#000;text-decoration:underline;}
+	.fauxlink:hover{color:#00F;text-decoration:none}
+
+	.fontsize10{font-size:10px;}
+	.fontsize12{font-size:12px;}
+	.fontsize14{font-size:14px;}
+	.IWdiv{width:290px;font-family:arial;font-size:12px;margin:5px;max-height:300px;}
+	.IWalertdiv{width:400px;font-family:arial;font-size:12px;margin:5px 20px 5px 5px;max-height:200px;overflow-y:auto;}
+	.IWattribute{color:#000000;font-size:10px;}
+	.IWalertnamediv{color:#F00;border-bottom:1px solid #CCC;}
+	.IWalertsummary{width:300px;margin-bottom:5px;}
+	.layerspan{font-size:12px;font-family:arial}
+	.leftnavtext{font-size:12px;font-family:arial;}
+	.marginB5{margin-bottom:5px;}
+	.marginB10{margin-bottom:10px;}
+	.marginB20{margin-bottom:20px;}
+	.margin5{margin:5px;}
+	.marginL5{margin-left:5px;}
+	.marginR25{margin-right:25px;}
+	.marginT5{margin-top:5px;}
+	.mousecaption{border:1px solid #000;background-color:#fff;color:#000;position:absolute;top:0px;left:0px;width:100px;}
+	.padding5{padding:5px;}
+	.sectiontitle:link{color:#000}
+	.sectiontitle:visited{color:#000}
+	.sectiontitle:active{color:#000}
+	.sectiontitle:hover{text-decoration:none;}
+
+	.statsarea{position:fixed;z-index:9999;left:225px;color:#000;background-color:#ccc;padding-left:3px;padding-right:3px;}
+	.websiteheader{width:153px;text-align:center;background-color:#000;color:#fff}
+	
+    </style>
+    <script src="js/prototype.js" type="text/javascript"></script>
+    <script src="js/scriptaculous.js?load=builder,effects" type="text/javascript"></script>
+
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript">google.load("maps","3.8",{"other_params":"sensor=false"});</script>
+    <script type="text/javascript">google.load("visualization","1");</script>
+    
+    <script src="js/arcgislink_packed.js" type="text/javascript"></script>
+    <script src="js/customGroundOverlay.js" type="text/javascript"></script>
+    <script src="js/keydragzoom.js" type="text/javascript"></script>
+    <script src="js/cookielibrary.js" type="text/javascript"></script>
+    <script src="js/weatherwatcherV2.js" type="text/javascript"></script>
+    <script src="js/airspace.js" type="text/javascript"></script>
+    <script src="js/markerhandling.js" type="text/javascript"></script>
+    <script src="js/iconmaker.js" type="text/javascript"></script>
+    <script src="js/ftvisualize.js" type="text/javascript"></script>
+    <script type="text/javascript">
+		MapLoader = function() {
+			weatherWatcher.getLocation();
+			airspacer.test();
+		}
+	</script>
+</head>
+<body onload="MapLoader();">
+    
+    <div id="leftnav">
+	    <div class="fontsize14 boldtext marginB5 websiteheader" title="Wayne's Weather Watcher - a weather map created with the Google Maps API and data from the WUnderground.com">Weather Map</div>
+	    <div id="siteoptions">
+		<!--LAYERS-->
+		<div id="overlays" class="marginB5"><a onclick="Effect.toggle('layerlist','blind',{duration: .2});return false;"  href="#" class="fontsize14 boldtext sectiontitle">Layers</a>
+		    <div id="layerlist" class="leftnavtext"></div>
+		</div>
+		<!--QUICKHIDE-->
+		<div id="divquickhide" style="margin-bottom:5px;margin-top:5px;" ><div title="Temporarily hides markers while you hold your mouse over this button" style="padding-top:3px;padding-bottom:3px;margin-left:20px;text-align:center;width:50%;border:1px solid #000;font-size:10px;cursor:pointer;" onmouseover="weatherWatcher.markers.currentElevationFilter=100000;weatherWatcher.markers.elevationFilterChange(weatherWatcher.markers.currentElevationFilter);this.style.border='1px solid #F00'" onmouseout="weatherWatcher.markers.currentElevationFilter=$('selmarkerelev').value;weatherWatcher.markers.elevationFilterChange($('selmarkerelev').value);this.style.border='1px solid #000'">Quick Hide</div></div>
+		<!--OPTIONS-->
+		<div class="fontsize14 marginB5"><a href="#" onclick="Effect.toggle('alloptions','blind',{duration: .2});return false;" class="fontsize14 boldtext sectiontitle">Options</a>
+		    <div id="alloptions" style="display:none;">
+			<div id="misclayers" class="leftnavtext">
+			    <div>
+				<div><input type="checkbox" id="chkMarkers" checked="checked" onclick="weatherWatcher.markers.showHide();" />Station Markers</div>
+				<div class="marginL5 fontsize12"><div style="padding-left:3px;display:inline-block;width:35px;">Type:</div><select id="selmarkertype" style="width:75px" onchange="weatherWatcher.markers.activeType=this.value;weatherWatcher.markers.changeMarkerType();"><option value="temps">Temps</option><option value="wind">Wind</option><option value="gusts">Gusts</option><option value="rain">Rain</option></select></div>
+				<div class="marginL5 fontsize12"><div style="padding-left:3px;display:inline-block;width:35px;">Elev:</div><select id="selmarkerelev" style="width:75px" onchange="weatherWatcher.markers.currentElevationFilter=this.value;weatherWatcher.markers.elevationFilterChange(weatherWatcher.markers.currentElevationFilter);"><option value="-9999">All</option><option value="500">&gt;500 ft</option><option value="1000">&gt;1000 ft</option></select></div>
+				<div class="fontsize12"><input type="checkbox" id="chkTraffic" />Google Traffic</div>
+			    </div>
+			</div>
+
+			<div id="opacitysection" class="fontsize12 marginB5">
+			    <div class="configtitle marginR25 fontsize12"><span class="boldtext" title="Allows you to change the opacity of each layer.">Layer Opacity</span></div>
+			    <div  class="marginR25 marginL5" id="layeropacitycontrols">
+				<select id="opacitylayerlist" onchange="weatherWatcher.changeLayerOpacitySelection();" style="width:125px"></select><br />
+				Opacity <select id="opacityvalues" onchange="weatherWatcher.changeLayerOpacity();"></select>
+			    </div>
+			</div>
+			<div class="fontsize12 marginB5">
+			    <div class="configtitle marginR25 fontsize12"><span title="Sets or clears your memorized map configuration" class="boldtext">Preferences</span></div>
+			    <div class="marginR25 marginL5" id="preferencemenu">
+				<input type="button" onclick="weatherWatcher.setCookies();return false;" title="Set Preferences (when you return to the site, the map will be configured with the same layers and layer opacity as it is now)" value="Set" />
+				<input type="button" onclick="weatherWatcher.resetCookies();return false;" title="Clear Preferences (resets your preference to the default map)" value="Clear" />
+			    </div>
+			</div>
+			<div class="fontsize12 marginB5">
+			    <a href="#" class="fauxlinkred" onclick="map.setCenter(weatherWatcher.initialLocation);map.setZoom(weatherWatcher.initialZoom);return false;" title="return to the default location and zoom">Reset Position</a>
+			</div>
+			<div class="fontsize12 marginB5">
+			    <a href="#" class="fauxlinkred" onclick="weatherWatcher.showChangeLog();return false;">Change Log</a>
+			</div>
+		    </div>
+		</div>
+		<!--HELP-->
+		<div class="fontsize12 marginB5"><a href="wwhelp.htm" target="_blank" class="fontsize14 boldtext sectiontitle" onclick="window.open('wwhelp.htm','_blank','width=500,height=400,status=yes,toolbar=no,scrollbars=yes');return false;">Help</a></div>
+		<!--FIND-->
+		<div class="fontsize12 marginB10">
+		    <div class="configtitle marginR25 fontsize12 boldtext">Clicking the Map Returns:
+			<select id="selmapclick" onchange="weatherWatcher.mapClickChanged();">
+			    <option value="wwAlerts" selected="selected">Alerts</option>
+			    <option value="forecast">Forecast</option>
+			</select>
+		    </div>
+		</div>
+
+		<div id="geocoder" class="marginT5 fontsize12" style="margin-bottom:3px;">Find:
+		    <input type="text" class="fontsize10" style="width:80px;height:13px;" id="txtzip" /><input style="width:25px;" class="fontsize10" type="button" name="btnGo" id="btngo" value="Go" onclick="weatherWatcher.goGeocode();return false;" />
+		</div>
+		<div class="fontsize10">Enter a place name (i.e. city, state, postal code, etc.) and click &quot;go&quot; to recenter the map. </div>
+		
+	    </div>
+	    <div class="marginT5">
+	    &nbsp;&nbsp;&nbsp;<g:plusone size="small" href="http://www.waynesweatherwatcher.com"></g:plusone>
+	    </div>
+	    <div class="fontsize12 marginT5"><a href="mailto:map@waynesweatherwatcher.com">Email Feedback</a></div>
+	    <div class="fontsize10 marginT5">Data sources: <a href="http://www.wunderground.com" target="_blank">wunderground.com</a><br />
+		<a href="http://www.nowcoast.noaa.gov/" target="_blank">NOAA nowCOAST</a><br />
+		<a href="http://www.weather.gov/" target="_blank">NOAA Weather.gov</a>
+	    </div>
+	    <!--<input type="button" value="test" onclick="weatherWatcher.markers.hideAll();">-->
+	    <div class="fontsize10 marginT5">
+		© waynesweatherwatcher.com<br/>All rights reserved.
+	    </div>
+    </div>
+    <div id="mapwrap">
+	<div id="map_canvas" style="height:100%;width:100%;"></div>
+    </div>
+    <div style="display:none;" id="changelog">
+	<div id="changeentries">
+	    <b>Change Log</b>
+	    <ul>
+		<li><b>v2.1.04</b> 7/11/2012 Minor adjustments.</li>
+		<li><b>v2.1.03</b> 5/29/2012 Added a blue dot to indicate your location.</li>
+		<li><b>v2.1.02</b> 5/17/2012 Changed the default alerts data source, updated to API v3.7.</li>
+		<li><b>v2.1.01</b> 4/24/2012 Made some improvements to resize events.</li>
+		<li><b>v2.1.00</b> 4/11/2012 Changed some data sources.</li>
+		<li><b>v2.0.20</b> 3/29/2012 Changed data source for weather alerts.</li>
+		<li><b>v2.0.17</b> 1/24/2012 Fixed a few small items.</li>
+		<li><b>v2.0.16</b> 11/3/2011 Fixed a small problem with the find function.</li>
+		<li><b>v2.0.15</b> 10/20/2011 Fixed the geocoding when HTML5 geolocation was used to determine user's location.</li>
+		<li><b>v2.0.14</b> 10/19/2011 Fixed a few little issues with the elevation filter and the Quick Hide function.</li>
+		<li><b>v2.0.13</b> 10/10/2011 Tidied up a few things in marker handling. Now using prototype's each instead of a standard loop.</li>
+		<li><b>v2.0.12</b> 10/10/2011 two changes: <br/>
+		    1. Added experimental feature to allow querying of the map via a Fusion Table for your UGC (weather forecast zone) and FWZ (fire weather zone). Change the "Clicking the map returns" option to "Zones" and watch how long it takes before Fusion Tables wakes up and gives you a result. (Takes minutes, it seems!)<br/>
+		    2. Added the "Quick Hide" mouseover button. Allows you to temporarily and quickly hide markers by mousing over the "Quick Hide" button. This works by setting the elevation filter to 100000 feet.</li>
+		<li><b>v2.0.11</b> 8/22/2011 Now using HTML5's geolocation capabilities to determine map center on load. See <a href="wwhelp.htm" target="_blank" class="fontsize14 boldtext sectiontitle" onclick="window.open('wwhelp.htm','_blank','width=500,height=400,status=yes,toolbar=no,scrollbars=yes');return false;">Help</a> for more
+		info. This should be a much more accurate method for centering your map.</li>
+		<li><b>v2.0.10</b> 8/18/2011 Removed counties layer because ESRI no longer has it available. Added nowCOAST radar as a backup to WU.</li>
+		<li><b>v2.0.9</b> 6/1/2011 Updated to maps API v3.4 and added google +1</li>
+		<li><b>v2.0.8</b> 3/25/2011 Standardized on Element.insert as the method for adding elements to the DOM.</li>
+		<li><b>v2.0.7</b> 3/23/2011 Fixed a quirky issue related to loading the temperature data in FF4.</li>
+		<li><b>v2.0.6</b> 3/9/2011 Finally figured out how to get temperature markers working in the Chrome browser. For the most part, this site should now be Chrome compatible. Updated to the latest version of the maps API and prototype/scriptaculous.</li>
+		<li><b>v2.0.5</b> 2/2/2011 Removed width restriction warning on Severe Alerts layer (thanks nowCOAST team!), added Special Marine Warnings as part of Severe Alerts layer.</li>
+		<li><b>v2.0.4</b> 11/17/2010 Minor update to improve handling of null alert results.</li>
+		<li><b>v2.0.3</b> 11/1/2010 Added NWS Alerts back into the layer list and turned on by default. If you prefer the old alert layer, click the "All Weather Alerts" layer and then set your preferences.</li>
+		<li><b>v2.0.2</b> 9/15/2010 Changed "All Weather Alerts" back to wunderground.com version because NWS version has disappeared!</li>
+		<li><b>v2.0.1</b> 9/13/2010 Modified alert info windows. Pulled "Clicking the Map Returns" out of Options and into main pane.</li>
+		<li><b>v2.0.0</b> 9/10/2010 Complete rewrite! Now using Google Maps API v3 and new data sources</li>
+		<li><b>v1.3.9</b> 3/3/2010 Did some tidying for maintainability</li>
+		<li><b>v1.3.8</b> 12/21/2009 Added enableRotation for Google's new aerial (not satellite) imagery.</li>
+		<li><b>v1.3.7</b> 12/4/2009 Added animated satellite as a layer option.</li>
+		<li><b>v1.3.6</b> 11/20/2009 Added timestamp to static radar.</li>
+		<li><b>v1.3.5</b> 8/17/2009 Improved marker routine to reduce http requests.</li>
+		<li><b>v1.3.4</b> 8/6/2009 The map now saves your position if you used the location= feature. You can then go back to the original position if you navigate away (click the hand in the navigation arrows at top left).</li>
+		<li><b>v1.3.3</b> 8/3/2009 Hid the radar legend by default so that netbooks could see all options on the left nav.</li>
+		<li><b>v1.3.2</b> 8/3/2009 Added this change log.</li>
+		<li><b>v1.3.1</b> 8/3/2009 Added ability to set default zoom level when selecting a default location through location= and zoom= parameters of the URL.<br/>Example: <a href="http://waynesweatherwatcher.com/map/?location=LAX&amp;zoom=15" target="_blank">http://waynesweatherwatcher.com/map/?location=LAX&amp;zoom=15</a></li>
+		<li><b>v1.3.0</b> 7/31/2009 Added ability to set default location via a location= parameter in the URL.<br/>Example: http://waynesweatherwatcher.com/map/index.htm?location=LAX</li>
+		<li><b>v1.2.5</b> 7/1/2009 Added dragzoom. Hold &lt;Shift&gt; while clicking and dragging. This will create a zoom box to which the map will be zoomed when you release the mouse.</li>
+	    </ul>
+	</div>
+	<div style="text-align:center">&gt;&gt;&gt;&nbsp;<a href="." onclick="weatherWatcher.hideChangeLog();return false;">Close</a>&nbsp;&lt;&lt;&lt;</div>
+    </div>
+    <div style="display:none">6F6C6B52-B6DA-4558-9ABA-7C09BD8EA266</div>
+    <div class="bottommessage fontsize12" style="display:none;" id="bmessage"></div>
+    <div class="centermessage fontsize14" style="display:none;" id="cmessage"></div>
+    <div id="stats" class="statsarea fontsize10"></div>
+    <div id="scriptplaceholder" style="display:none"></div>
+    <div id="mousecaption" style="display:none" class="mousecaption fontsize10" ></div>
+    
+
+    </body>
+</html>

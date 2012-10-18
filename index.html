@@ -1,0 +1,182 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Step Brief</title>
+</head>
+<body onload=updateScreenData()>
+<style>
+	#sortable { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+	#sortable li { margin: 0 3px 3px 3px; padding: 0.4em; padding-left: 1.5em; font-size: 1.4em; height: 18px; }
+	#sortable li span { position: absolute; margin-left: -1.3em;  }
+	textarea {float: right; width: 90%;  background: transparent; color: white; font-weight: bold; border:none}
+	textarea {line-height:18px; } 
+	.header {background:#4d4e65; opacity: .8; color: #fffbfb; text-align: center; }
+	body { margin: 0}
+	html { 
+	background: url(images/blue_gradient_background.jpg) no-repeat center center fixed; 
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+		}
+</style>
+
+<link type="text/css" href="css/ui-lightness/jquery-ui-1.8.23.custom.css" rel="Stylesheet" />	
+<link type="text/css" href="css/step.css" rel="Stylesheet" />
+<script type="text/javascript" src="js/jquery-1.8.0.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.8.23.custom.min.js"></script>
+<script type="text/javascript" src="js/jquery.autosize.js"></script>
+
+<style>
+	.column { width: 32%; float: left; padding-bottom: 100px; }
+	.portlet { margin: 0px 1px 1px 0px; background: transparent}
+	.portlet-header { margin: 0.3em 0.3em 0.1em 0.3em; padding-left: 0.2em; border:none; background: none; font-weight: bold; color: white; text-decoration: underline; text }
+	.portlet-header .ui-icon { float: right; }
+	.portlet-content { padding: 0.1em 0.4em 0.4em 0.4em;  }
+	.ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important; height: 50px !important; }
+	.ui-sortable-placeholder * { visibility: hidden; }
+
+</style>
+
+
+<script>
+
+$(document).ready(function(){
+    $('textarea').autosize();  
+});
+
+
+
+	//$phpserver = "http://www.rv-x.net/";
+	$phpserver = "http://localhost/";
+	
+	$(function() {
+		$( ".column" ).sortable({
+			connectWith: ".column"
+		});
+
+		$( ".portlet" ).addClass( "ui-widget ui-widget-content ui-helper-clearfix ui-corner-all" )
+			.find( ".portlet-header" )
+				.addClass( "ui-widget-header ui-corner-all" )
+				.prepend( "<span class='ui-icon ui-icon-minusthick'></span>")
+				.end()
+			.find( ".portlet-content" );
+
+		$( ".portlet-header .ui-icon" ).click(function() {
+			$( this ).toggleClass( "ui-icon-minusthick" ).toggleClass( "ui-icon-plusthick" );
+			$( this ).parents( ".portlet:first" ).find( ".portlet-content" ).toggle();
+		});
+
+		//$( ".column" ).disableSelection();
+	});
+</script>
+
+<script type="text/javascript">
+
+function savechange($section)
+{
+	$displaytext = document.getElementById($section).value;
+	$url = $phpserver + "stepdata.php";
+	$.post($url, { unit: "65AGRS", section: $section, displaytext: $displaytext } , function(data) {
+   
+ });
+	
+}
+
+function updateScreenData(){
+	updateClock();
+	updateBoxes();
+}
+
+function updateBoxes(){
+   $url = $phpserver + "stepdata.php";
+   $.getJSON($url+"?section=jets",  function(json) {
+   		document.getElementById("jets").value=json.displaytext;
+   		   $('textarea').trigger('autosize');
+   		});
+
+}
+
+function updateClock(){
+  var currentTime = new Date ( );
+
+  var theMonths= new Array ("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+
+  var currentYear = currentTime.getFullYear();
+  var currentDate = currentTime.getDate();
+  var currentMonth = theMonths[currentTime.getMonth()];
+  var currentDate = currentTime.getDate();
+  var currentHours = currentTime.getHours ( );
+  var currentMinutes = currentTime.getMinutes ( );
+  var currentSeconds = currentTime.getSeconds ( );
+
+  // Pad the minutes and seconds with leading zeros, if required
+  currentMinutes = ( currentMinutes < 10 ? "0" : "" ) + currentMinutes;
+  currentSeconds = ( currentSeconds < 10 ? "0" : "" ) + currentSeconds;
+
+  // Choose either "AM" or "PM" as appropriate
+  var timeOfDay = ( currentHours < 12 ) ? "AM" : "PM";
+
+  // Convert the hours component to 12-hour format if needed
+  currentHours = ( currentHours > 12 ) ? currentHours - 12 : currentHours;
+
+  // Convert an hours component of "0" to "12"
+  currentHours = ( currentHours == 0 ) ? 12 : currentHours;
+
+  // Compose the string for display
+  var currentTimeString = currentHours + ":" + currentMinutes + ":" + currentSeconds + " " + timeOfDay;
+  currentTimeString = currentDate + " " + currentMonth + " " + currentYear;
+
+  // Update the time display
+  document.getElementById("clock").firstChild.nodeValue = currentTimeString;
+  
+  
+
+  
+}
+
+// -->
+</script>
+
+<div class="demo">
+<div class="header">
+65th Aggressor Squadron<br>
+<span id="clock">clock</span>
+</div>
+<div class="column">
+<?php
+ echo("test");
+?>
+	<div class="portlet">
+		<div class="portlet-header">Jets</div>
+		<div class="portlet-content">
+			<textarea id="jets" onchange="savechange('jets')">
+			</textarea></div>
+	</div>
+	
+	
+</div>
+
+<div class="column">
+
+	<div class="portlet">
+		<div class="portlet-header">NOTAMs</div>
+		<div class="portlet-content"><textarea id="notams">sample text</textarea></div>
+	</div>
+	
+</div>
+
+<div class="column">
+
+	<div class="portlet">
+		<div class="portlet-header">Weather</div>
+		<div class="portlet-content"><textarea id="weather">sample text</textarea></div>
+	</div>
+	
+	<div class="portlet">
+		<div class="portlet-header">Admin</div>
+		<div class="portlet-content"><textarea id="admin">sample text</textarea></div>
+	</div>
+</div>
+</body>
+</html>
