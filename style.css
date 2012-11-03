@@ -87,10 +87,19 @@ h6 {
 .olControlAttribution {
     bottom: 5px;
 }
+.inputs {
+    width: 30%;
+    float: right;
+    height: 512px;
+}
 .smallmap {
     border: 1px solid #CCCCCC;
     height: 256px;
     width: 512px;
+}
+.bigmap {
+    border: 1px solid #CCCCCC;
+    float: left;
 }
 #tags {
     display: none;
@@ -110,7 +119,7 @@ body {
 }
 #map {
     border: 0 none;
-    height: 250px;
+    height: 600px;
 }
 #title {
     font-size: 1.3em;
