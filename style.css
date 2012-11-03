@@ -87,11 +87,7 @@ h6 {
 .olControlAttribution {
     bottom: 5px;
 }
-.inputs {
-    width: 30%;
-    float: right;
-    height: 512px;
-}
+
 .smallmap {
     border: 1px solid #CCCCCC;
     height: 256px;
