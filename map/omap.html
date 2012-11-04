@@ -9,70 +9,64 @@
 <link rel="stylesheet" href="openlayers/theme/default/style.css" type="text/css">
 <link rel="stylesheet" href="style.css" type="text/css">
 
-
-    <link rel="stylesheet" href="css/ui-lightness/jquery-ui-1.8.23.custom.css" />
-    <script src="js/jquery-1.8.2.min.js"></script>
-    <script src="js/jquery-ui-1.8.23.custom.min.js"></script>
- 
-    <style>
-    #feedback { font-size: 1.4em; }
-    .linecontrol { vertical-align: center; }
-    .line-widget { height: auto; min-height: 1em; max-height: 2em; font-size: 1.4em;}
-    .linename { border: 1px solid #dddddd; }
-    #button-list .ui-selecting { background: #FECA40; }
-    #button-list .ui-selected { background: #F39814; color: white; }
-    #button-list { list-style-type: none; margin: 0; padding: 0; width: 100%; }
-    #button-list li { margin: 3px; padding: 0.4em; font-size: 1.4em; height: auto; }
-
-    img { height:1em;}
-
-    </style>
-    <script>
-    var $currentlineselected = "";
-    $(document).ready(function(){
-    $("#button-list li").click(function() {
-    	if($(this).hasClass("ui-selected")){
-    			$currentlineselected="";
-    			setinputmode(0);
-    			click.deactivate();
-    		}
-    	else {
-    		$currentlineselected=$(this).attr('id');
-    		if($currentlineselected=="Line1"){currenteditlayer=linelayers[1]};
-    		if($currentlineselected=="Line2"){currenteditlayer=linelayers[2]};
-    		setinputmode(0);
-    		click.activate();
-    	};
-
-      $(this).toggleClass("ui-selected").siblings().removeClass("ui-selected");
-      
-    });
-});
-    </script>
-
+<!--//jQuery stuff, including jQuery UI and associated style sheets-->
+<link rel="stylesheet" href="css/ui-lightness/jquery-ui-1.8.23.custom.css" />
+<script src="js/jquery-1.8.2.min.js"></script>
+<script src="js/jquery-ui-1.8.23.custom.min.js"></script>
 
 <style type="text/css">
-#main {width: 100%}
-.inputs {width: 30%}
-#map {width: 70%}
-table {table-layout: fixed;
-		width: 100%;}
-div .inputs {
-    width: 30%;
-    float: right;
-    height: auto;
-}
-.perfinputs {width: auto;}
+	#feedback { font-size: 1.4em; }
+	.linecontrol { vertical-align: center; }
+	.line-widget { height: auto; min-height: 1em; max-height: 2em; font-size: 1.4em;}
+	.linename { border: 1px solid #dddddd; }
+	#button-list .ui-selecting { background: #FECA40; }
+	#button-list .ui-selected { background: #F39814; color: white; }
+	#button-list { list-style-type: none; margin: 0; padding: 0; width: 100%; }
+	#button-list li { margin: 3px; padding: 0.4em; font-size: 1.4em; height: auto; }
+
+	img { height:1em;}
+
+	/* style stuff for openlayers maps   */
+	#main {width: 100%}
+	.inputs {width: 30%}
+	#map {width: 70%}
+	table {table-layout: fixed;
+			width: 100%;}
+	div .inputs {
+	    width: 30%;
+	    float: right;
+	    height: auto;
+	}
+	.perfinputs {width: auto;}
+
 </style>
 
-
 <script src="openlayers/lib/OpenLayers.js"></script>
-
 <script src="http://maps.google.com/maps/api/js?v=3&amp;sensor=false"></script>
 
 <script type="text/javascript">
+	//jQuery UI code 
+    var $currentlineselected = "";
+    $(document).ready(function(){
+	    $("#button-list li").click(function() {
+	    	if($(this).hasClass("ui-selected")){
+	    			$currentlineselected="";
+	    			setinputmode(0);
+	    			click.deactivate();
+	    	}
+	    	else {
+	    		$currentlineselected=$(this).attr('id');
+	    		if($currentlineselected=="Line1"){currenteditlayer=linelayers[1]};
+	    		if($currentlineselected=="Line2"){currenteditlayer=linelayers[2]};
+	    		setinputmode(0);
+	    		click.activate();
+	    	};
 
+	      	$(this).toggleClass("ui-selected").siblings().removeClass("ui-selected");
+	    });
+	});
 
+/* variables for map functions, specifically flight path drawing calculations */
 var firstlonlat;
 var heading;
 var currenteditlayer;
@@ -80,7 +74,6 @@ var currentgeocoll;
 var linecounter=0;
 
 var linelayers = new Array();
-
 
 OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 	defaultHandlerOptions: {
@@ -105,15 +98,6 @@ OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 		$inputmode++;
 		setinputmode($inputmode);
 		if ($inputmode==1) {
-			
-			//currenteditlayer = new OpenLayers.Layer.Vector("Line" + linecounter);
-			//map.addLayer(currenteditlayer);
-			//currentgeocoll = new OpenLayers.Geometry.Collection();
-//			lineStr = new OpenLayers.Geometry.LineString(pointList);
-//			lineFeature = new OpenLayers.Feature.Vector(lineStr, null, style_green);
-//			currenteditlayer.addFeatures(lineFeature);
-
-
 			
 			firstlonlat = lonlat;
 			ol_firstlonlat = ol_lonlat;
@@ -141,12 +125,6 @@ OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 			
 			gsmps = groundspeed(document.calcs.mach.value, document.calcs.alt.value);
 			
-
-
-			//var style_blue = OpenLayers.Util.extend({}, OpenLayers.Feature.Vector.style['default']);
-			//style_blue.strokeColor = "red";
-			//style_blue.fillColor = "blue";
-
 			var pointList = [];
 			
 			if (Math.abs(hdgdiff)<10) {
@@ -196,17 +174,6 @@ OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 			};
 			currenteditlayer.addFeatures(lineFeature);
 
-			//currentgeocoll.addComponent(lineStr);
-//			lineFeature = new OpenLayers.Feature.Vector(
-//					currentgeocoll, null, style_green);
-
-			//alert(lineStr.getGeodesicLength());
-
-
-			
-			//vectorLayer.addFeatures(lineFeature);
-
-			
 		};	
 
 
@@ -240,7 +207,7 @@ var map, vectors, controls;
 var ol_proj;
 var g_proj;
 
-	var click = new OpenLayers.Control.Click();
+var click = new OpenLayers.Control.Click();
 
 function init(){
     map = new OpenLayers.Map({
@@ -289,9 +256,7 @@ function init(){
 
     map.addLayers([ gphy, blankbase, kmltest]);
 
-
     map.addControl(new OpenLayers.Control.LayerSwitcher());
-
 
 	linelayers[1]=new OpenLayers.Layer.Vector("Line1");
 	linelayers[2]=new OpenLayers.Layer.Vector("Line2");
@@ -300,18 +265,12 @@ function init(){
 
 	map.addControl(new OpenLayers.Control.EditingToolbar(linelayers[1]));
 
-
     var startcenter = new OpenLayers.LonLat(-115.6,37.5);
     startcenter.transform(ol_proj,g_proj);
 
     map.setCenter(startcenter, 8);
 
 	/*  Original code replaced by google maps above
-	map = new OpenLayers.Map('map');
-	var gphy = new OpenLayers.Layer.Google(
-        "Google Physical"
-    );
-
 	var ol_wms = new OpenLayers.Layer.WMS( "OpenLayers WMS","http://vmap0.tiles.osgeo.org/wms/vmap0?", {layers: 'basic'} );
 	var jpl_wms = new OpenLayers.Layer.WMS( "NASA Global Mosaic","http://t1.hypercube.telascience.org/cgi-bin/landsat7",{layers: "landsat7"});
 	jpl_wms.setVisibility(false);
@@ -345,6 +304,7 @@ function init(){
 	//click.activate();
 
 }
+
 
 function init_modify(){
 
@@ -558,8 +518,6 @@ function CalcDist()
 	mach = document.calcs.mach.value;
 	gskts = mach * SSatalt;
 	gsmps = parseFloat(MachOneCalcknotstomps(gskts));
-
-
 	}
 function headingchange(hdg1,hdg2) {
 	var a = hdg1-hdg2;
@@ -593,7 +551,9 @@ function save_layer(){
 }
 
 </script>
+
 </head>
+
 <body onload="init()">
 <h1 id="title">Gadget Flight Path Drawing Tool</h1>
 <div id="main">
