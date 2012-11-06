@@ -3,6 +3,9 @@
 	[
 		{
 			"path": "/Library/WebServer/Documents"
+		},
+		{
+			"path": "/var/www/map"
 		}
 	]
 }

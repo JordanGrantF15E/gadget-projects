@@ -17,14 +17,20 @@
 <style type="text/css">
 	#feedback { font-size: 1.4em; }
 	.linecontrol { vertical-align: center; }
+	.linecolorbox {     background-color: red;
+    					float: left;
+    					height: 1em;
+    					margin: 0.3em;
+   						width: 1em;}
+   	.linethickness { width: 2em; float: left;}
 	.line-widget { height: auto; min-height: 1em; max-height: 2em; font-size: 1.4em;}
-	.linename { border: 1px solid #dddddd; }
+	.linename { border: 1px solid #dddddd; float: left; }
 	#button-list .ui-selecting { background: #FECA40; }
 	#button-list .ui-selected { background: #F39814; color: white; }
 	#button-list { list-style-type: none; margin: 0; padding: 0; width: 100%; }
 	#button-list li { margin: 3px; padding: 0.4em; font-size: 1.4em; height: auto; }
 
-	img { height:1em;}
+	img { height:1em; margin: 0.3em;}
 
 	/* style stuff for openlayers maps   */
 	#main {width: 100%}
@@ -258,12 +264,25 @@ function init(){
 
     map.addControl(new OpenLayers.Control.LayerSwitcher());
 
-	linelayers[1]=new OpenLayers.Layer.Vector("Line1");
+ // allow testing of specific renderers via "?renderer=Canvas", etc
+var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
+renderer = (renderer) ? [renderer] : OpenLayers.Layer.Vector.prototype.renderers; 
+
+    var bluestyle = new OpenLayers.Style({
+  			'strokeWidth': 5,
+  			'strokeColor': '#0C00EE'
+		})
+
+	linelayers[1]=new OpenLayers.Layer.Vector("Line1",{
+		styleMap: new OpenLayers.StyleMap(bluestyle),
+		renderers: renderer
+	});
 	linelayers[2]=new OpenLayers.Layer.Vector("Line2");
 
 	map.addLayers([linelayers[1],linelayers[2]]);
+	currenteditlayer = linelayers[1];
 
-	map.addControl(new OpenLayers.Control.EditingToolbar(linelayers[1]));
+	map.addControl(new OpenLayers.Control.EditingToolbar(currenteditlayer));
 
     var startcenter = new OpenLayers.LonLat(-115.6,37.5);
     startcenter.transform(ol_proj,g_proj);
@@ -579,8 +598,10 @@ function save_layer(){
 	<div class="linecontrol">
 		<ol id="button-list">
 		    <li class="ui-widget-content line-widget" id="Line1">
-			<span class="linename">Line 1 - Red</span>
-			<img src="images/save_icon_small.gif" id="savelayer" onclick="save_layer()" >
+				<span class="linename">Line 1 - Red</span>
+				<div class="linecolorbox"></div>
+				<input class="linethickness" id="linethick" value="2"></input>
+				<img src="images/save_icon_small.gif" id="savelayer" onclick="save_layer()" >
 		    </li>
 		    <li class="ui-widget-content line-widget" id="Line2"><span class="linename">Line 2 - Blue</span></li>
 		</ol>
