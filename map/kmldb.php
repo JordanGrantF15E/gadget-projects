@@ -10,7 +10,7 @@
 //$mysqlpw = 'maptools';
 //$mysqldb = 'maptools';
 
-require_once('FirePHPCore/FirePHP.class.php');
+require_once('../FirePHPCore/FirePHP.class.php');
 ob_start();
 
 $firephp = FirePHP::getInstance(true);
@@ -31,7 +31,7 @@ try {
 
 
 
-require("maptool_db_settings.php");
+require_once("maptool_db_settings.php");
 
 $dbtable = 'featureskml';
 
@@ -69,6 +69,10 @@ if(isset($_POST['action'])) {
 			/* disconnect from the db */
 			@mysql_close($link);
 		}
+		elseif($action=='loadkml'){
+			load_kml_layer($layer_name);
+		}
+		
 
 	}
 	else{
@@ -76,25 +80,38 @@ if(isset($_POST['action'])) {
 	};
 };
 
-/* require the user as the parameter */
  if(isset($_GET['layer_name'])) { 
 	$layer_name=$_GET['layer_name'];
+
+	load_kml_layer($layer_name);
+};
+
+function load_kml_layer($layer_name) {
+
+	global $mysqlserver;
+	global $mysqluser;
+	global $mysqlpw;
+	global $mysqldb;
 
 	/* connect to the db */
 	$link = mysql_connect($mysqlserver,$mysqluser,$mysqlpw) or die('Cannot connect to the DB'.'  '.$mysqlserver.$mysqluser.$mysqlpw);
 	mysql_select_db($mysqldb,$link) or die('Cannot select the DB');
 
+	$dbtable = "featureskml";
 	/* grab the posts from the db */
 	$query = "SELECT kmltext FROM `$dbtable` ";
 	$wherephrase = "WHERE layername='$layer_name'";
-	
+	$query = $query.$wherephrase;
+
 	$result = mysql_query($query,$link) or die('Errant query:  '.$query);
 	
 	$row = mysql_fetch_assoc($result);
-    echo $row['kmltext'];
+	echo $row['kmltext'];
 
 	
 	/* disconnect from the db */
 	@mysql_close($link);
 }
+
+
 ?>

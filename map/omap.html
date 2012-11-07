@@ -260,23 +260,42 @@ function init(){
                 })
             });
 
+    var redstyle = new OpenLayers.Style({
+  			'strokeWidth': 5,
+  			'strokeColor': '#E01B1B',
+  			'pointRadius': 5
+		})
+
+	 // allow testing of specific renderers via "?renderer=Canvas", etc
+	var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
+	renderer = (renderer) ? [renderer] : OpenLayers.Layer.Vector.prototype.renderers; 
+
+
+	linelayers[1] = new OpenLayers.Layer.Vector("Line1", {
+                projection: ol_proj,
+                strategies: [new OpenLayers.Strategy.Fixed()],
+                styleMap: new OpenLayers.StyleMap(redstyle),
+                renderers: renderer,
+                protocol: new OpenLayers.Protocol.HTTP({
+                    url: "kmldb.php",
+                    params: {'layer_name': 'Line1'},
+                    format: new OpenLayers.Format.KML({
+                        extractStyles: false,
+                        extractAttributes: false
+                    })
+                })
+            });
+
     map.addLayers([ gphy, blankbase, kmltest]);
 
     map.addControl(new OpenLayers.Control.LayerSwitcher());
 
- // allow testing of specific renderers via "?renderer=Canvas", etc
-var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
-renderer = (renderer) ? [renderer] : OpenLayers.Layer.Vector.prototype.renderers; 
 
-    var bluestyle = new OpenLayers.Style({
-  			'strokeWidth': 5,
-  			'strokeColor': '#0C00EE'
-		})
 
-	linelayers[1]=new OpenLayers.Layer.Vector("Line1",{
-		styleMap: new OpenLayers.StyleMap(bluestyle),
-		renderers: renderer
-	});
+//	linelayers[1]=new OpenLayers.Layer.Vector("Line1",{
+//		styleMap: new OpenLayers.StyleMap(bluestyle),
+//		renderers: renderer
+//	});
 	linelayers[2]=new OpenLayers.Layer.Vector("Line2");
 
 	map.addLayers([linelayers[1],linelayers[2]]);
@@ -558,14 +577,23 @@ function headingadd(hdg,diff) {
 
 function save_layer(){
 	var $kml;
-	var fmtkml = new OpenLayers.Format.KML();
+	var fmtkml = new OpenLayers.Format.KML({
+		internalProjection: g_proj,
+		externalProjection: ol_proj});
 	$kml=fmtkml.write(linelayers[1].features);
 
 	$phpserver = "";
 	$url = $phpserver + "kmldb.php";
 	$.post($url, { action: "savekml", layer_name: "Line1", layer_kml: $kml }, function(data) {});
 	alert("saved");
+}
 
+function load_layer(layer_name){
+	var $kml;
+	var fmtkml = new OpenLayers.Format.KML();
+
+	$url = $phpserver + "kmldb.php";
+	$.post($url, { action: "loadkml", layer_name: "Line1"}, function(data) {});
 
 }
 
