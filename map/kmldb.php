@@ -47,7 +47,7 @@ if(isset($_POST['action'])) {
 
 			/* connect to the db */
 			$link = mysql_connect($mysqlserver,$mysqluser,$mysqlpw) or die('Cannot connect to the DB');
-			mysql_select_db($mysqldb,$link) or die('Cannot select the DB');
+			mysql_select_db($mysqldb,$link) or die('Cannot select the DB '.$mysqldb);
 
 			$sql = "SELECT `layername` FROM `$dbtable` WHERE `layername` = '$layer_name'";
 			$result = mysql_query($sql,$link) or die('Errant query:  '.$sql);	
