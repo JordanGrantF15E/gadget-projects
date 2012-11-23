@@ -35,7 +35,7 @@
 	/* style stuff for openlayers maps   */
 	#main {width: 100%}
 	.inputs {width: 30%}
-	#map {width: 70%}
+	#map {width: 70%; position: relative;}
 	table {table-layout: fixed;
 			width: 100%;}
 	div .inputs {
@@ -44,6 +44,52 @@
 	    height: auto;
 	}
 	.perfinputs {width: auto;}
+	
+	#wx-tab-btn {
+	    background-color: rgba(255, 255, 255, 0.5);
+	    border-bottom-left-radius: 0.5em;
+	    border-bottom-right-radius: 0.5em;
+	    border-color: darkgray;
+	    border-image: none;
+	    border-style: outset;
+	    border-width: 0 1px 3px;
+	    margin: 0;
+	    padding: 0 5px;
+	    position: absolute;
+	    top: 155px;
+	    width: 75px;
+	    text-align: center;
+	    transform: rotate(-90deg);
+	    transform-origin: left top;
+	    z-index: 2001;
+	    user-select: none;
+	    -moz-user-select: none;
+    }
+    #wx-tab-div {
+	    background-color: rgba(255, 255, 255, 0.5);
+	    border-bottom-right-radius: 0.5em;
+	    border-color: darkgray;
+	    border-image: none;
+	    border-style: outset;
+	    border-top-right-radius: 0.5em;
+	    border-width: 1px;
+	    height: 100px;
+	    left: -10em;
+	    padding-left: 1em;
+	    padding-top: 0.5em;
+	    position: absolute;
+	    top: 60px;
+	    width: 9em;
+	    z-index: 2000;
+    	
+    }
+    .wx-list {
+    	list-style-type: none;
+		padding: 0px;
+		margin: 0px;
+		font-size: .9em;
+    }
+
 
 </style>
 
@@ -103,9 +149,97 @@
 	    };
 	};
 
+// EXTEND OpenLayers.Format.KML.write method
+// Adding ability to write styles with it
+// In this part, the write function will iterate
+// through the features to find all the style names
+// and create the style XML
+    /**
+     * APIMethod: write
+     * Accept Feature Collection, and return a string. 
+     * 
+     * Parameters:
+     * features - {Array(<OpenLayers.Feature.Vector>)} An array of features.
+     *
+     * Returns:
+     * {String} A KML string.
+     */
+OpenLayers.Format.KML.prototype.write = function(features) {
+
+    if(!(OpenLayers.Util.isArray(features))) {
+        features = [features];
+    }
+    var kml = this.createElementNS(this.kmlns, "kml");
+    //my new code begin
+    var stylenames = [];
+    var featurestylename;
+    for(var i=0, len=features.length; i<len; ++i) {
+			if(features[i].style){
+			featurestylename = features[i].style.name;
+			if(stylenames.indexOf[featurestylename]!= -1) {
+				stylenames.push[featurestylename];
+				var stylenode = this.createElementNS(this.kmlns, "Style id=".featurestylename);
+				stylenode.appendChild(this.createTextNode("test"));
+			};
+			};
+    }
 
 
+    //my new code end
+    var folder = this.createFolderXML();
+    for(var i=0, len=features.length; i<len; ++i) {
+        folder.appendChild(this.createPlacemarkXML(features[i]));
+    }
+    kml.appendChild(folder);
+    return OpenLayers.Format.XML.prototype.write.apply(this, [kml]);
+};
 
+
+//EXTEND OpenLayers.Control.Measure.measure
+    /**
+     * Method: measure
+     *
+     * Parameters:
+     * geometry - {<OpenLayers.Geometry>}
+     * eventType - {String}
+     */
+OpenLayers.Control.Measure.prototype.projection = new OpenLayers.Projection("EPSG:4326"); //default is lat/long
+
+OpenLayers.Control.Measure.prototype.measure = function(geometry, eventType) {
+    var stat, order;
+    var brng = 0;
+    if(geometry.CLASS_NAME.indexOf('LineString') > -1) {
+        stat = this.getBestLength(geometry);
+        order = 1;
+        //Add calculation of true bearing between last two measurement points
+        	var verts = geometry.getVertices();
+        	var lastpoint = verts[verts.length-1].clone();
+        	var secondlastpoint = verts[verts.length-2].clone();
+
+        	var latlon_proj = new OpenLayers.Projection("EPSG:4326");
+
+        	if (this.projection != latlon_proj){
+        		lastpoint.transform(this.projection,latlon_proj);
+        		secondlastpoint.transform(this.projection,latlon_proj);
+        	};
+
+        	var lastlonlat = new OpenLayers.LonLat(lastpoint.x,lastpoint.y);
+        	var secondlastlonlat = new OpenLayers.LonLat(secondlastpoint.x,secondlastpoint.y);
+			var brng = OpenLayers.Spherical.computeHeading(secondlastlonlat,lastlonlat).toFixed(0);	
+			brng = (-brng+360)%360;
+		//end addition
+    } else {
+        stat = this.getBestArea(geometry);
+        order = 2;
+    }
+    this.events.triggerEvent(eventType, {
+        measure: stat[0],
+        units: stat[1],
+        order: order,
+        geometry: geometry,
+        bearing: brng
+        });							//added the bearing part
+};
 
 
 
@@ -129,7 +263,74 @@
 
 	      	$(this).toggleClass("ui-selected").siblings().removeClass("ui-selected");
 	    });
+
+		$('#wx-tab-btn').click(function() {
+		  	if ($('#wx-tab-btn').hasClass('wx-on')){
+				$('.wx-tab').animate(
+				 	{
+				  	left: '-=10em',
+					},
+					{
+					complete: function(){$('#wx-tab-btn').removeClass('wx-on')}
+					}
+				);
+			}
+			else {
+				$('.wx-tab').animate(
+					{
+				  	left: '+=10em',
+					},
+					{
+					complete: function(){$('#wx-tab-btn').addClass('wx-on')}
+					}
+				);	
+			};
+		});
+
+		$('#animated-radar').change(function() {
+			if($('#animated-radar').is(":checked")){
+
+				var currentbounds;  //OL.Bounds object
+				currentbounds = map.calculateBounds();
+				ol_currentbounds = currentbounds.clone().transform(g_proj,ol_proj);
+				var currentsize;   //OL.Size object
+				currentsize = map.getCurrentSize(); 
+
+				var radblastUrl = "http://radblast.wunderground.com/cgi-bin/radar/WUNIDS_composite?" + 
+					"maxlat=" + ol_currentbounds.top +
+					"&maxlon=" + ol_currentbounds.right + 
+					"&minlat=" + ol_currentbounds.bottom + 
+					"&minlon=" + ol_currentbounds.left +
+					"&type=N0R&frame=0&num=7&delay=25" +
+					"&width=" + currentsize.w +
+					"&height=" + currentsize.h + 
+					"&png=0&smooth=1&min=0&noclutter=0&rainsnow=1&nodebug=0&theext=.gif&merge=elev" +
+					"&reproj.automerc=1&timelabel=1&timelabel.x=200&timelabel.y=12&brand=wundermap";
+				
+				var radarlayer = new OpenLayers.Layer.Image("Animated Radar", radblastUrl, currentbounds, currentsize, {
+					opacity: 0.7,
+					isBaseLayer: false
+				});
+
+				map.addLayers([radarlayer]);
+			}
+			else {
+				var layerstokill = map.getLayersByName("Animated Radar");
+				for (var i = 0; i < layerstokill.length; i++) {
+				    layerstokill[i].destroy();
+				    
+				}
+
+
+
+			}
+		});
+
+
 	});
+
+
+
 
 /* variables for map functions, specifically flight path drawing calculations */
 var firstlonlat;
@@ -298,14 +499,15 @@ function init(){
         {type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 22}
     );
 
-	blankbase = new OpenLayers.Layer.Image("Blank background",
-                                        'white.png',
-                                        map.maxExtent,
-                                        new OpenLayers.Size(1, 1));
-
     ol_proj = new OpenLayers.Projection("EPSG:4326");
     g_proj = new OpenLayers.Projection("EPSG:900913");
 
+    maxr = 40075016.686 / map.getCurrentSize().w; 
+
+	blankbase = new OpenLayers.Layer.Image("Blank background",
+                                        'white.png',
+                                        map.maxExtent,
+                                        new OpenLayers.Size(1, 1), {projection: g_proj, maxResolution: maxr});
 
 	var kmltest = new OpenLayers.Layer.Vector("airspace", {
                 projection: ol_proj,
@@ -320,9 +522,10 @@ function init(){
             });
 
     var redstyle = new OpenLayers.Style({
-  			'strokeWidth': 5,
+    		name: 'redstyle',
+  			'strokeWidth': 1,
   			'strokeColor': '#E01B1B',
-  			'pointRadius': 5
+  			'pointRadius': 2
 		})
 
 	 // allow testing of specific renderers via "?renderer=Canvas", etc
@@ -333,7 +536,7 @@ function init(){
 	linelayers[1] = new OpenLayers.Layer.Vector("Line1", {
                 projection: ol_proj,
                 strategies: [new OpenLayers.Strategy.Fixed()],
-                styleMap: new OpenLayers.StyleMap(redstyle),
+                style: redstyle,
                 renderers: renderer,
                 protocol: new OpenLayers.Protocol.HTTP({
                     url: "kmldb.php",
@@ -368,6 +571,63 @@ function init(){
 
     edittoolbar.addControls([ctrl]);
 
+//Measuring stick button
+	 // style the sketch fancy
+	var sketchSymbolizers = {
+		"Point": {
+		pointRadius: 4,
+		graphicName: "square",
+		fillColor: "white",
+		fillOpacity: 1,
+		strokeWidth: 1,
+		strokeOpacity: 1,
+		strokeColor: "#333333"
+		},
+		"Line": {
+		strokeWidth: 3,
+		strokeOpacity: 1,
+		strokeColor: "#666666",
+		strokeDashstyle: "dash"
+		},
+		"Polygon": {
+		strokeWidth: 2,
+		strokeOpacity: 1,
+		strokeColor: "#666666",
+		fillColor: "white",
+		fillOpacity: 0.3
+		}
+	};
+	var measureStyle = new OpenLayers.Style();
+	measureStyle.addRules([
+		new OpenLayers.Rule({symbolizer: sketchSymbolizers})
+	]);
+	var measureStyleMap = new OpenLayers.StyleMap({"default": measureStyle});
+
+	var measureControl;
+
+	measureControl = new OpenLayers.Control.Measure(
+		OpenLayers.Handler.Path, {
+			displayClass: "olControlMeasuringStick",
+			persist: true,
+			immediate : true,
+			geodesic: true,
+			handlerOptions: {
+				layerOptions: {
+					styleMap: measureStyleMap
+				}
+			}
+		}
+	);	
+	measureControl.projection = g_proj;
+
+	measureControl.events.on({
+		"measure": handleMeasurements,
+		"measurepartial": handleMeasurements
+	}); 
+
+	edittoolbar.addControls([measureControl]);
+// End measuring stick button
+
 
 	map.addControl(edittoolbar);
 
@@ -386,6 +646,7 @@ function init(){
 	//map.zoomToMaxExtent();
 	*/
 	
+
     map.addControl(
         new OpenLayers.Control.MousePosition({
             prefix: 'coordinates: ',
@@ -405,12 +666,29 @@ function init(){
 		
 	}); 
 
-	//init_modify();
-
-	//click.activate();
 
 }
 
+function handleMeasurements(event) {
+	var geometry = event.geometry;
+	var units = event.units;
+	var order = event.order;
+	var measure = event.measure;
+	var bearing = event.bearing;
+	var element = document.getElementById('measurement');
+	var out = "";
+	if(order == 1) {
+		var outlength = measure;
+		if(units == 'km'){
+			outlength = outlength * .54 ; //convert to nautical miles
+			units = 'nm';
+		};
+		out += bearing + "° / " + outlength.toFixed(0) + " " + units;
+	} else {
+		out += "measure: " + measure.toFixed(3) + " " + units + "<sup>2</" + "sup>";
+	}
+	element.innerHTML = out;
+} 
 
  
 
@@ -429,6 +707,20 @@ var style_blue = {
 	pointRadius: 6,
 	pointerEvents: "visiblePainted"
 };
+
+function update_style(layernum){
+
+    var style = new OpenLayers.Style({
+  			'strokeWidth': document.line1.linethick.value,
+  			'strokeColor': '#E01B1B',
+  			'pointRadius': 5
+		})
+
+	linelayers[layernum].styleMap = new OpenLayers.StyleMap({'default':style,'temporary':style});
+           
+
+};
+
 
 var timestep = 5; //used for calculating distance traveled over a standard time
 
@@ -558,7 +850,7 @@ function headingadd(hdg,diff) {
 }
 
 function save_layer(){
-	var $kml;
+	var $kml, $kmlstyle;
 	var fmtkml = new OpenLayers.Format.KML({
 		internalProjection: g_proj,
 		externalProjection: ol_proj});
@@ -586,9 +878,19 @@ function load_layer(layer_name){
 <body onload="init()">
 <h1 id="title">Gadget Flight Path Drawing Tool</h1>
 <div id="main">
-	<div id="map" class="bigmap"></div>
+	<div id="map" class="bigmap">
+		<div id="wx-tab-div" class="wx-tab">
+			<ul id="wx-choices" class="wx-list">
+				<li class="wx-choice-item">
+					<input type="checkbox" id="animated-radar">Animated Radar</input>
+				</li>
+			</ul>
+		</div>
+		<div id="wx-tab-btn" class="wx-tab">weather</div>
+	</div>
 	<div class="inputs">
 		<div id="modewindow">pick first point</div>
+		<div id="measurement"></div>
 		<form name="calcs">
 		<table>
 			<tr>
@@ -608,10 +910,12 @@ function load_layer(layer_name){
 	<div class="linecontrol">
 		<ol id="button-list">
 		    <li class="ui-widget-content line-widget" id="Line1">
+		    	<form name="line1">
 				<span class="linename">Line 1 - Red</span>
 				<div class="linecolorbox"></div>
-				<input class="linethickness" id="linethick" value="2"></input>
+				<input class="linethickness" id="linethick" value="2" onchange="update_style(1)"></input>
 				<img src="images/save_icon_small.gif" id="savelayer" onclick="save_layer()" >
+				</form> 
 		    </li>
 		    <li class="ui-widget-content line-widget" id="Line2"><span class="linename">Line 2 - Blue</span></li>
 		</ol>
